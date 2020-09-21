@@ -1,3 +1,5 @@
+from typing import List
+from locust.user.users import User
 from .event import Events
 from .exception import RunnerAlreadyExistsError
 from .stats import RequestStats
@@ -14,7 +16,7 @@ class Environment:
     See :ref:`events` for available events.
     """
 
-    user_classes = []
+    user_classes: List[User] = []
     """User classes that the runner will run"""
 
     shape_class = None

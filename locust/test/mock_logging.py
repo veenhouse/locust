@@ -1,12 +1,13 @@
 import logging
+from typing import List
 
 
 class MockedLoggingHandler(logging.Handler):
-    debug = []
-    warning = []
-    info = []
-    error = []
-    critical = []
+    debug: List = []
+    warning: List = []
+    info: List = []
+    error: List = []
+    critical: List = []
 
     def emit(self, record):
         if record.exc_info:

@@ -35,4 +35,5 @@ setup(
         "mock",
         "pyquery",
     ],
+    package_data={"locust": ["py.typed"]},
 )

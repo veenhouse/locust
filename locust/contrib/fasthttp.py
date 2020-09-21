@@ -3,6 +3,7 @@ import socket
 import json
 import json as unshadowed_json  # some methods take a named parameter called json
 from base64 import b64encode
+from typing import Any, Dict
 from urllib.parse import urlparse, urlunparse
 from ssl import SSLError
 from timeit import default_timer
@@ -220,7 +221,7 @@ class FastHttpSession(object):
         url = self._build_url(path)
 
         # store meta data that is used when reporting the request to locust's statistics
-        request_meta = {}
+        request_meta: Dict[str, Any] = {}
         # set up pre_request hook for attaching meta data to the request object
         request_meta["method"] = method
         request_meta["start_time"] = default_timer()
