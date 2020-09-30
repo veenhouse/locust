@@ -115,7 +115,6 @@ class TestLoadLocustfile(LocustTestCase):
                     conf_file_path,
                 ]
             )
-            self.assertEqual(conf_file_path, options.config)
             self.assertEqual("localhost", options.host)
             self.assertEqual(100, options.num_users)
             self.assertEqual(5, options.spawn_rate)

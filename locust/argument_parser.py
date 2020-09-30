@@ -57,6 +57,7 @@ def find_locustfile(locustfile):
 def get_empty_argument_parser(add_help=True, default_config_files=DEFAULT_CONFIG_FILES):
     parser = configargparse.ArgumentParser(
         default_config_files=default_config_files,
+        args_for_setting_config_path=["--config"],
         add_env_var_help=False,
         add_config_file_help=False,
         add_help=add_help,
@@ -77,7 +78,6 @@ def get_empty_argument_parser(add_help=True, default_config_files=DEFAULT_CONFIG
         help="Python module file to import, e.g. '../other.py'. Default: locustfile",
         env_var="LOCUST_LOCUSTFILE",
     )
-    parser.add_argument("--config", is_config_file_arg=True, help="Config file path")
 
     return parser
 
