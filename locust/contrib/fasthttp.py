@@ -67,12 +67,6 @@ class FastHttpUser(User):
     for keeping a user session between requests.
     """
 
-    client = None
-    """
-    Instance of HttpSession that is created upon instantiation of User.
-    The client support cookies, and therefore keeps the session between HTTP requests.
-    """
-
     # Below are various UserAgent settings. Change these in your subclass to alter FastHttpUser's behaviour.
     # It needs to be done before FastHttpUser is instantiated, changing them later will have no effect
 

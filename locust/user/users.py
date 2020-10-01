@@ -101,7 +101,6 @@ class User(object, metaclass=UserMeta):
     environment = None
     """A reference to the :py:attr:`environment <locust.Environment>` in which this locust is running"""
 
-    client = None
     _state = None
     _greenlet: greenlet.Greenlet = None
     _group: Group
