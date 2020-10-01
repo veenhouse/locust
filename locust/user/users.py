@@ -12,11 +12,6 @@ from .task import (
     LOCUST_STATE_WAITING,
     LOCUST_STATE_STOPPING,
 )
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    # avoid cyclic dependency at runtime
-    from locust.env import Environment
 
 
 class UserMeta(type):
@@ -103,7 +98,7 @@ class User(object, metaclass=UserMeta):
     abstract = True
     """If abstract is True, the class is meant to be subclassed, and locust will not spawn users of this class during a test."""
 
-    environment: Environment = None
+    environment = None
     """A reference to the :py:attr:`environment <locust.Environment>` in which this locust is running"""
 
     _state = None
@@ -111,7 +106,7 @@ class User(object, metaclass=UserMeta):
     _group: Group
     _taskset_instance = None
 
-    def __init__(self, environment: Environment):
+    def __init__(self, environment):
         super().__init__()
         self.environment = environment
 
