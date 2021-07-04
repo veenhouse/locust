@@ -14,7 +14,7 @@ import greenlet
 import psutil
 from gevent.pool import Group
 
-from . import User
+from . import User, __version__
 from .log import greenlet_exception_logger
 from .rpc import Message, rpc
 from .stats import RequestStats, setup_distributed_stats_event_listeners
@@ -676,6 +676,13 @@ class MasterRunner(DistributedRunner):
             self.connection_broken = False
             msg.node_id = client_id
             if msg.type == "client_ready":
+                if not msg.data:
+                    logger.error(f"An old (pre 2.0) worker tried to connect ({client_id}). That's not going to work.")
+                    continue
+                elif msg.data != __version__:
+                    logger.warning(
+                        f"A worker ({client_id}) running a different version ({msg.data}) connected, master version is {__version__}"
+                    )
                 id = msg.node_id
                 self.clients[id] = WorkerNode(id, heartbeat_liveness=HEARTBEAT_LIVENESS)
                 logger.info(
@@ -787,7 +794,7 @@ class WorkerRunner(DistributedRunner):
         self.client = rpc.Client(master_host, master_port, self.client_id)
         self.greenlet.spawn(self.heartbeat).link_exception(greenlet_exception_handler)
         self.greenlet.spawn(self.worker).link_exception(greenlet_exception_handler)
-        self.client.send(Message("client_ready", None, self.client_id))
+        self.client.send(Message("client_ready", __version__, self.client_id))
         self.greenlet.spawn(self.stats_reporter).link_exception(greenlet_exception_handler)
 
         # register listener for when all users have spawned, and report it to the master node
@@ -868,7 +875,7 @@ class WorkerRunner(DistributedRunner):
             elif msg.type == "stop":
                 self.stop()
                 self.client.send(Message("client_stopped", None, self.client_id))
-                self.client.send(Message("client_ready", None, self.client_id))
+                self.client.send(Message("client_ready", __version__, self.client_id))
                 self.worker_state = STATE_INIT
             elif msg.type == "quit":
                 logger.info("Got quit message from master, shutting down...")

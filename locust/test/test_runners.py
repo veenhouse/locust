@@ -7,7 +7,7 @@ from gevent.queue import Queue
 import greenlet
 
 import locust
-from locust import runners, constant, LoadTestShape
+from locust import runners, constant, LoadTestShape, __version__
 from locust.main import create_environment
 from locust.user import User, TaskSet, task
 from locust.env import Environment
@@ -732,14 +732,14 @@ class TestMasterRunner(LocustTestCase):
     def test_worker_connect(self):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
-            server.mocked_send(Message("client_ready", None, "zeh_fake_client1"))
+            server.mocked_send(Message("client_ready", __version__, "zeh_fake_client1"))
             self.assertEqual(1, len(master.clients))
             self.assertTrue(
                 "zeh_fake_client1" in master.clients, "Could not find fake client in master instance's clients dict"
             )
-            server.mocked_send(Message("client_ready", None, "zeh_fake_client2"))
-            server.mocked_send(Message("client_ready", None, "zeh_fake_client3"))
-            server.mocked_send(Message("client_ready", None, "zeh_fake_client4"))
+            server.mocked_send(Message("client_ready", __version__, "zeh_fake_client2"))
+            server.mocked_send(Message("client_ready", __version__, "zeh_fake_client3"))
+            server.mocked_send(Message("client_ready", __version__, "zeh_fake_client4"))
             self.assertEqual(4, len(master.clients))
 
             server.mocked_send(Message("quit", None, "zeh_fake_client3"))
@@ -748,7 +748,7 @@ class TestMasterRunner(LocustTestCase):
     def test_worker_stats_report_median(self):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
-            server.mocked_send(Message("client_ready", None, "fake_client"))
+            server.mocked_send(Message("client_ready", __version__, "fake_client"))
 
             master.stats.get("/", "GET").log(100, 23455)
             master.stats.get("/", "GET").log(800, 23455)
@@ -765,7 +765,7 @@ class TestMasterRunner(LocustTestCase):
     def test_worker_stats_report_with_none_response_times(self):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
-            server.mocked_send(Message("client_ready", None, "fake_client"))
+            server.mocked_send(Message("client_ready", __version__, "fake_client"))
 
             master.stats.get("/mixed", "GET").log(0, 23455)
             master.stats.get("/mixed", "GET").log(800, 23455)
@@ -791,7 +791,7 @@ class TestMasterRunner(LocustTestCase):
     def test_master_marks_downed_workers_as_missing(self):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
-            server.mocked_send(Message("client_ready", None, "fake_client"))
+            server.mocked_send(Message("client_ready", __version__, "fake_client"))
             sleep(6)
             # print(master.clients['fake_client'].__dict__)
             assert master.clients["fake_client"].state == STATE_MISSING
@@ -799,8 +799,8 @@ class TestMasterRunner(LocustTestCase):
     def test_last_worker_quitting_stops_test(self):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
-            server.mocked_send(Message("client_ready", None, "fake_client1"))
-            server.mocked_send(Message("client_ready", None, "fake_client2"))
+            server.mocked_send(Message("client_ready", __version__, "fake_client1"))
+            server.mocked_send(Message("client_ready", __version__, "fake_client2"))
 
             master.start(1, 2)
             server.mocked_send(Message("spawning", None, "fake_client1"))
@@ -820,9 +820,9 @@ class TestMasterRunner(LocustTestCase):
     def test_last_worker_missing_stops_test(self):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
-            server.mocked_send(Message("client_ready", None, "fake_client1"))
-            server.mocked_send(Message("client_ready", None, "fake_client2"))
-            server.mocked_send(Message("client_ready", None, "fake_client3"))
+            server.mocked_send(Message("client_ready", __version__, "fake_client1"))
+            server.mocked_send(Message("client_ready", __version__, "fake_client2"))
+            server.mocked_send(Message("client_ready", __version__, "fake_client3"))
 
             master.start(3, 3)
             server.mocked_send(Message("spawning", None, "fake_client1"))
@@ -866,7 +866,7 @@ class TestMasterRunner(LocustTestCase):
     def test_master_total_stats(self):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
-            server.mocked_send(Message("client_ready", None, "fake_client"))
+            server.mocked_send(Message("client_ready", __version__, "fake_client"))
             stats = RequestStats()
             stats.log_request("GET", "/1", 100, 3546)
             stats.log_request("GET", "/1", 800, 56743)
@@ -901,7 +901,7 @@ class TestMasterRunner(LocustTestCase):
     def test_master_total_stats_with_none_response_times(self):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
-            server.mocked_send(Message("client_ready", None, "fake_client"))
+            server.mocked_send(Message("client_ready", __version__, "fake_client"))
             stats = RequestStats()
             stats.log_request("GET", "/1", 100, 3546)
             stats.log_request("GET", "/1", 800, 56743)
@@ -957,7 +957,7 @@ class TestMasterRunner(LocustTestCase):
                 master = self.get_runner()
                 self.environment.stats.reset_all()
                 mocked_time.return_value += 1.0234
-                server.mocked_send(Message("client_ready", None, "fake_client"))
+                server.mocked_send(Message("client_ready", __version__, "fake_client"))
                 stats = RequestStats()
                 stats.log_request("GET", "/1", 100, 3546)
                 stats.log_request("GET", "/1", 800, 56743)
@@ -1016,7 +1016,7 @@ class TestMasterRunner(LocustTestCase):
     def test_rebalance_locust_users_on_worker_connect(self):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
-            server.mocked_send(Message("client_ready", None, "zeh_fake_client1"))
+            server.mocked_send(Message("client_ready", __version__, "zeh_fake_client1"))
             self.assertEqual(1, len(master.clients))
             self.assertTrue(
                 "zeh_fake_client1" in master.clients, "Could not find fake client in master instance's clients dict"
@@ -1029,7 +1029,7 @@ class TestMasterRunner(LocustTestCase):
             self.assertEqual(20, msg.data["spawn_rate"])
 
             # let another worker connect
-            server.mocked_send(Message("client_ready", None, "zeh_fake_client2"))
+            server.mocked_send(Message("client_ready", __version__, "zeh_fake_client2"))
             self.assertEqual(2, len(master.clients))
             self.assertEqual(2, len(server.outbox))
             client_id, msg = server.outbox.pop()
@@ -1067,7 +1067,7 @@ class TestMasterRunner(LocustTestCase):
                 run_count[0] += 1
 
             for i in range(5):
-                server.mocked_send(Message("client_ready", None, "fake_client%i" % i))
+                server.mocked_send(Message("client_ready", __version__, "fake_client%i" % i))
 
             master.start(7, 7)
             self.assertEqual(5, len(server.outbox))
@@ -1098,7 +1098,7 @@ class TestMasterRunner(LocustTestCase):
                 run_count[0] += 1
 
             for i in range(5):
-                server.mocked_send(Message("client_ready", None, "fake_client%i" % i))
+                server.mocked_send(Message("client_ready", __version__, "fake_client%i" % i))
 
             master.start(7, 7)
             self.assertEqual(5, len(server.outbox))
@@ -1107,7 +1107,7 @@ class TestMasterRunner(LocustTestCase):
 
             run_count[0] = 0
             for i in range(5):
-                server.mocked_send(Message("client_ready", None, "fake_client%i" % i))
+                server.mocked_send(Message("client_ready", __version__, "fake_client%i" % i))
             master.start(7, 7)
             master.stop()
             master.quit()
@@ -1127,7 +1127,7 @@ class TestMasterRunner(LocustTestCase):
                 run_count[0] += 1
 
             for i in range(5):
-                server.mocked_send(Message("client_ready", None, "fake_client%i" % i))
+                server.mocked_send(Message("client_ready", __version__, "fake_client%i" % i))
 
             master.start(7, 7)
             self.assertEqual(5, len(server.outbox))
@@ -1166,7 +1166,7 @@ class TestMasterRunner(LocustTestCase):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
             for i in range(5):
-                server.mocked_send(Message("client_ready", None, "fake_client%i" % i))
+                server.mocked_send(Message("client_ready", __version__, "fake_client%i" % i))
 
             master.start(7, 7)
             self.assertEqual(5, len(server.outbox))
@@ -1181,7 +1181,7 @@ class TestMasterRunner(LocustTestCase):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
             for i in range(5):
-                server.mocked_send(Message("client_ready", None, "fake_client%i" % i))
+                server.mocked_send(Message("client_ready", __version__, "fake_client%i" % i))
 
             master.start(2, 2)
             self.assertEqual(5, len(server.outbox))
@@ -1214,7 +1214,7 @@ class TestMasterRunner(LocustTestCase):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
             for i in range(5):
-                server.mocked_send(Message("client_ready", None, "fake_client%i" % i))
+                server.mocked_send(Message("client_ready", __version__, "fake_client%i" % i))
 
             # Start the shape_worker
             self.environment.shape_class.reset_time()
@@ -1266,7 +1266,7 @@ class TestMasterRunner(LocustTestCase):
         with mock.patch("locust.rpc.rpc.Server", mocked_rpc()) as server:
             master = self.get_runner()
             for i in range(5):
-                server.mocked_send(Message("client_ready", None, "fake_client%i" % i))
+                server.mocked_send(Message("client_ready", __version__, "fake_client%i" % i))
 
             # Start the shape_worker
             self.environment.shape_class.reset_time()
@@ -1363,7 +1363,7 @@ class TestMasterRunner(LocustTestCase):
                 self.assertEqual(0, len(master.clients))
                 server.mocked_send(Message("client_ready", NETWORK_BROKEN, "fake_client"))
                 self.assertTrue(master.connection_broken)
-                server.mocked_send(Message("client_ready", None, "fake_client"))
+                server.mocked_send(Message("client_ready", __version__, "fake_client"))
                 sleep(0.2)
                 self.assertFalse(master.connection_broken)
                 self.assertEqual(1, len(master.clients))
@@ -1657,7 +1657,7 @@ class TestWorkerRunner(LocustTestCase):
 
 class TestMessageSerializing(unittest.TestCase):
     def test_message_serialize(self):
-        msg = Message("client_ready", None, "my_id")
+        msg = Message("client_ready", __version__, "my_id")
         rebuilt = Message.unserialize(msg.serialize())
         self.assertEqual(msg.type, rebuilt.type)
         self.assertEqual(msg.data, rebuilt.data)
