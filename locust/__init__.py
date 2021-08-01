@@ -1,4 +1,6 @@
-__version__ = "2.0.0"
+from version_query import predict_version_str
+
+__version__ = predict_version_str()
 
 from gevent import monkey
 

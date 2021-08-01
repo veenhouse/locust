@@ -30,6 +30,7 @@ setup(
         "Flask-BasicAuth>=0.2.0",
         "Flask-Cors>=3.0.10",
         "roundrobin>=0.0.2",
+        "version-query>=1.1.0",
     ],
     test_suite="locust.test",
     tests_require=[
