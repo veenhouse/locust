@@ -296,16 +296,15 @@ class LocustProcessIntegrationTest(TestCase):
                 @task
                 def test(self):
                     print('Running test')
-                    gevent.sleep(100)
+                    gevent.sleep(2)
         """
             )
         ) as file_path:
             proc = subprocess.Popen(["locust", "--master", "-t", "1", "--headless", "-f", file_path])
             worker_proc = subprocess.Popen(["locust", "--worker", "-f", file_path], stdout=PIPE, stderr=PIPE)
-            gevent.sleep(1)
-            proc.communicate()
+            proc.communicate(timeout=6)
             self.assertEqual(0, proc.returncode)
-            stdout, _ = worker_proc.communicate()
+            stdout, _ = worker_proc.communicate(timeout=6)
             self.assertEqual(0, worker_proc.returncode)
             stdout = stdout.decode("utf-8")
             self.assertIn("Init complete\nRunning test", stdout)
