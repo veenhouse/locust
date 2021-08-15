@@ -285,12 +285,14 @@ class LocustProcessIntegrationTest(TestCase):
             content=textwrap.dedent(
                 """
             from locust import User, task, events
+            from locust.runners import WorkerRunner
             import gevent
 
             @events.init.add_listener
             def on_locust_init(environment, **_kwargs):
-                gevent.sleep(5)
-                print('Init complete')
+                if isinstance(environment.runner, WorkerRunner):
+                    gevent.sleep(1)
+                    print('Init complete')
 
             class MyUser(User):
                 @task
@@ -301,7 +303,6 @@ class LocustProcessIntegrationTest(TestCase):
             )
         ) as file_path:
             port = str(get_free_tcp_port())
-            print(port)
             proc = subprocess.Popen(
                 ["locust", "--master", "-t", "1", "--headless", "-f", file_path, "--master-bind-port", port]
             )
@@ -309,7 +310,7 @@ class LocustProcessIntegrationTest(TestCase):
                 ["locust", "--worker", "-f", file_path, "--master-port", port], stdout=PIPE, stderr=PIPE
             )
             try:
-                proc.communicate(timeout=16)
+                proc.communicate(timeout=7)
             except TimeoutExpired:
                 proc.kill()
                 proc.communicate()
@@ -320,7 +321,7 @@ class LocustProcessIntegrationTest(TestCase):
             stdout, _ = worker_proc.communicate(timeout=6)
             self.assertEqual(0, worker_proc.returncode)
             stdout = stdout.decode("utf-8")
-            self.assertIn("Init complete\nRunning test", stdout)
+            self.assertEqual("Init complete\nRunning test\n", stdout)
 
     def test_webserver(self):
         with temporary_file(
