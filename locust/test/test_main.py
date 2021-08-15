@@ -289,7 +289,7 @@ class LocustProcessIntegrationTest(TestCase):
 
             @events.init.add_listener
             def on_locust_init(environment, **_kwargs):
-                gevent.sleep(10)
+                gevent.sleep(5)
                 print('Init complete')
 
             class MyUser(User):
