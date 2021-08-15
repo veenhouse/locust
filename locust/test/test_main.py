@@ -289,7 +289,7 @@ class LocustProcessIntegrationTest(TestCase):
 
             @events.init.add_listener
             def on_locust_init(environment, **_kwargs):
-                gevent.sleep(2)
+                gevent.sleep(10)
                 print('Init complete')
 
             class MyUser(User):
@@ -309,13 +309,13 @@ class LocustProcessIntegrationTest(TestCase):
                 ["locust", "--worker", "-f", file_path, "--master-port", port], stdout=PIPE, stderr=PIPE
             )
             try:
-                proc.communicate(timeout=6)
+                proc.communicate(timeout=16)
             except TimeoutExpired:
                 proc.kill()
                 proc.communicate()
                 worker_proc.kill()
                 worker_proc.communicate()
-                self.assertTrue(False)
+                self.fail("Master did not terminate in time")
             self.assertEqual(0, proc.returncode)
             stdout, _ = worker_proc.communicate(timeout=6)
             self.assertEqual(0, worker_proc.returncode)
