@@ -1003,7 +1003,7 @@ class WorkerRunner(DistributedRunner):
 
         # send client_ready once any other init events have finished
         self.environment.events.init.add_listener(send_client_ready)
-        
+
         # register listener for when all users have spawned, and report it to the master node
         def on_spawning_complete(user_count):
             assert user_count == sum(self.user_classes_count.values())
