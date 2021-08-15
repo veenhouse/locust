@@ -5,7 +5,7 @@ import signal
 import subprocess
 import textwrap
 from unittest import TestCase
-from subprocess import PIPE, STDOUT
+from subprocess import PIPE, STDOUT, TimeoutExpired
 
 import gevent
 import requests
@@ -300,9 +300,22 @@ class LocustProcessIntegrationTest(TestCase):
         """
             )
         ) as file_path:
-            proc = subprocess.Popen(["locust", "--master", "-t", "1", "--headless", "-f", file_path])
-            worker_proc = subprocess.Popen(["locust", "--worker", "-f", file_path], stdout=PIPE, stderr=PIPE)
-            proc.communicate(timeout=6)
+            port = str(get_free_tcp_port())
+            print(port)
+            proc = subprocess.Popen(
+                ["locust", "--master", "-t", "1", "--headless", "-f", file_path, "--master-bind-port", port]
+            )
+            worker_proc = subprocess.Popen(
+                ["locust", "--worker", "-f", file_path, "--master-port", port], stdout=PIPE, stderr=PIPE
+            )
+            try:
+                proc.communicate(timeout=6)
+            except TimeoutExpired:
+                proc.kill()
+                proc.communicate()
+                worker_proc.kill()
+                worker_proc.communicate()
+                self.assertTrue(False)
             self.assertEqual(0, proc.returncode)
             stdout, _ = worker_proc.communicate(timeout=6)
             self.assertEqual(0, worker_proc.returncode)
