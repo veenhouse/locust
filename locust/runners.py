@@ -1007,9 +1007,15 @@ class WorkerRunner(DistributedRunner):
         self.worker_cpu_warning_emitted = False
         self._users_dispatcher = None
         self.client = rpc.Client(master_host, master_port, self.client_id)
+
+        def send_client_ready(environment, **kw):
+            self.client.send(Message("client_ready", __version__, self.client_id))
+
+        # delay sending client_ready until other init events have finished
+        self.environment.events.init.add_listener(send_client_ready)
         self.greenlet.spawn(self.heartbeat).link_exception(greenlet_exception_handler)
         self.greenlet.spawn(self.worker).link_exception(greenlet_exception_handler)
-        self.client.send(Message("client_ready", __version__, self.client_id))
+
         self.greenlet.spawn(self.stats_reporter).link_exception(greenlet_exception_handler)
 
         # register listener for when all users have spawned, and report it to the master node
