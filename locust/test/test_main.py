@@ -204,6 +204,36 @@ class LocustProcessIntegrationTest(TestCase):
             self.assertIn("Starting Locust", stderr)
             self.assertIn("Shutting down (exit code 42), bye", stderr)
 
+    def test_master_worker_with_slow_init(self):
+        with temporary_file(
+            content=textwrap.dedent(
+                """
+            from locust import User, task, events
+            import gevent
+
+            @events.init.add_listener
+            def on_locust_init(environment, **_kwargs):
+                gevent.sleep(2)
+                print('Init complete')
+
+            class MyUser(User):
+                @task
+                def test(self):
+                    print('Running test')
+                    gevent.sleep(100)
+        """
+            )
+        ) as file_path:
+            proc = subprocess.Popen(["locust", "--master", "-t", "1", "--headless", "-f", file_path])
+            worker_proc = subprocess.Popen(["locust", "--worker", "-f", file_path], stdout=PIPE, stderr=PIPE)
+            gevent.sleep(1)
+            proc.communicate()
+            self.assertEqual(0, proc.returncode)
+            stdout, _ = worker_proc.communicate()
+            self.assertEqual(0, worker_proc.returncode)
+            stdout = stdout.decode("utf-8")
+            self.assertIn("Init complete\nRunning test", stdout)
+
     def test_webserver(self):
         with temporary_file(
             content=textwrap.dedent(
