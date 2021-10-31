@@ -118,6 +118,12 @@ def create_environment(user_classes, options, events=None, shape_class=None, loc
 
 
 def main():
+    try:
+        import coverage
+
+        coverage.process_startup()
+    except ImportError:
+        pass  # We just ignore if coverage is not importable
     # find specified locustfile and make sure it exists, using a very simplified
     # command line parser that is only used to parse the -f option
     locustfile = parse_locustfile_option()
