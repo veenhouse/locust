@@ -2,6 +2,7 @@
 branch = True
 source = locust
 concurrency = multiprocessing
+data_file = ${COVERAGE_DIR}/.coverage
 
 [report]
 exclude_lines =
